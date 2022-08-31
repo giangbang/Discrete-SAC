@@ -130,7 +130,7 @@ class SACDiscrete:
         
         return np.mean(critic_losses), np.mean(actor_losses), np.mean(alpha_losses)
     
-    def select_action(self, state, deterministic=True):
+    def select_action(self, state, deterministic=False):
         with torch.no_grad():
             state = torch.FloatTensor(state).to(self.device)
             if len(state.shape) == 1: state = state.unsqueeze(0)

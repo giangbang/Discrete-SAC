@@ -13,7 +13,7 @@ def evaluate(env, agent, n_rollout = 10):
         state = env.reset()
         done = False
         while not done:
-            action = agent.select_action(state, False)
+            action = agent.select_action(state, True)
             
             next_state, reward, done, info = env.step(action)
             tot_rw += reward
@@ -46,7 +46,7 @@ if __name__ == '__main__':
         if env_step < args.start_step: 
             action = env.action_space.sample()
         else :
-            action = sac_agent.select_action(state)
+            action = sac_agent.select_action(state, False)
         
         next_state, reward, done, info = env.step(action)
         buffer.add(state, action, reward, next_state, done, info)

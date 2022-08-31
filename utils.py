@@ -1,7 +1,7 @@
 import argparse
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Training SAC continuous')
+    parser = argparse.ArgumentParser(description='Training SAC discrete')
     # environment
     parser.add_argument('--env_name', default='LunarLander-v2')
     # replay buffer
@@ -25,7 +25,7 @@ def parse_args():
     parser.add_argument('--num_layers', default=3, type=int)
     # sac
     parser.add_argument('--discount', default=0.99, type=float)
-    parser.add_argument('--init_temperature', default=.5, type=float)
+    parser.add_argument('--init_temperature', default=1, type=float)
     parser.add_argument('--alpha_lr', default=3e-4, type=float)
     # misc
     parser.add_argument('--seed', default=-1, type=int)
