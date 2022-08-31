@@ -134,7 +134,7 @@ class SACDiscrete:
         with torch.no_grad():
             state = torch.FloatTensor(state).to(self.device)
             if len(state.shape) == 1: state = state.unsqueeze(0)
-            return self.actor.sample(state, False, deterministic)[0].cpu().numpy().flatten()
+            return self.actor.sample(state, False, deterministic)[0].cpu().numpy().item()
     
     def save(self, model_dir, step):
         import os
