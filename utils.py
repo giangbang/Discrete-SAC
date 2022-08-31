@@ -11,8 +11,8 @@ def parse_args():
     parser.add_argument('--total_env_step', default=1000000, type=int)
     parser.add_argument('--batch_size', default=256, type=int)
     parser.add_argument('--hidden_dim', default=256, type=int)
-    parser.add_argument('--gradient_steps', default=50, type=int)
-    parser.add_argument('--train_freq', default=50, type=int)
+    parser.add_argument('--gradient_steps', default=1, type=int)
+    parser.add_argument('--train_freq', default=1, type=int)
     # eval
     parser.add_argument('--eval_interval', default=10000, type=int)
     parser.add_argument('--num_eval_episodes', default=10, type=int)

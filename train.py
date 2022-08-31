@@ -2,8 +2,7 @@
 since it should not be copied to other projects
 '''
 
-from buffer import ReplayBuffer
-from sac import SAC
+from sac_discrete import ReplayBuffer, SACDiscrete as SAC
 import numpy as np
 import gym
 from utils import parse_args, pprint, seed_everything
@@ -33,7 +32,7 @@ if __name__ == '__main__':
     observation_shape = env.observation_space.shape
     
     sac_agent = SAC(observation_shape[0], action_shape, **vars(args))
-    buffer    = ReplayBuffer(observation_shape, action_shape, 
+    buffer    = ReplayBuffer(observation_shape, [action_shape], 
                 args.buffer_size, args.batch_size)
     
     pprint(vars(args))

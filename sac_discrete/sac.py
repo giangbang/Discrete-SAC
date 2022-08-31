@@ -22,8 +22,8 @@ class SACDiscrete:
     ):
         self.discount = discount
         self.critic_tau = critic_tau
-        self.reward_scale = reward_scale
         self.gradient_steps = gradient_steps
+        self.device = device
         
         self.actor  = Actor(obs_shape, action_shape, 
                     num_layers, hidden_dim, ).to(device)
@@ -52,7 +52,7 @@ class SACDiscrete:
     def _update_critic(self, batch):
         # Compute target Q 
         with torch.no_grad():
-            next_pi, next_log_pi  = self.actor.sample(batch.next_states, compute_log_pi=True)
+            next_pi, next_log_pi  = self.actor.probs(batch.next_states, compute_log_pi=True)
             
             next_q_vals = self.critic.target_q(batch.next_states)
             next_q_val  = torch.minimum(*next_q_vals)
@@ -67,9 +67,9 @@ class SACDiscrete:
             target_q_val= batch.rewards + (1-batch.dones)*self.discount*next_q_val
             
         current_q_vals  = self.critic.online_q(batch.states)
-        current_q_values = [
-            current_q.gather(1, replay_data.actions)
-            for current_q in current_q_values
+        current_q_vals = [
+            current_q.gather(1, batch.actions)
+            for current_q in current_q_vals
         ]
         critic_loss     = .5*sum(F.mse_loss(current_q, target_q_val) for current_q in current_q_vals)
         
@@ -82,7 +82,7 @@ class SACDiscrete:
         return critic_loss.item()
         
     def _update_actor(self, batch):
-        pi, ent = self.actor.sample(batch.states, compute_log_pi=True)
+        pi, ent = self.actor.probs(batch.states, compute_log_pi=True)
         
         q_vals = self.critic.online_q(batch.states)
         q_val  = torch.minimum(*q_vals)
@@ -103,7 +103,7 @@ class SACDiscrete:
         
     def _update_alpha(self, batch):
         with torch.no_grad():
-            pi, entropy = self.actor.sample(batch.states, compute_log_pi=True)
+            pi, entropy = self.actor.probs(batch.states, compute_log_pi=True)
         alpha_loss = -(
             self.log_ent_coef * (-entropy + self.target_entropy).detach()
         ).mean()

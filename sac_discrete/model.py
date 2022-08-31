@@ -1,7 +1,7 @@
 import torch 
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.distribution import Categorical
+from torch.distributions import Categorical
 
 class MLP(nn.Module):
     '''
@@ -32,18 +32,24 @@ class Actor(nn.Module):
     '''
     Actor class for state 1d inputs
     '''
-    def __init__(self, inputs_dim, output_dims, n_layer, n_unit,
-                log_std_min, log_std_max):
+    def __init__(self, inputs_dim, output_dims, n_layer, n_unit):
         super().__init__()
         self.inputs_dim     = inputs_dim
         self.output_dims    = output_dims
-        self.log_std_min    = log_std_min
-        self.log_std_max    = log_std_max
         
         self._actor = MLP(inputs_dim, output_dims, n_layer, n_unit)
         
     def forward(self, x):
         return self._actor(x)
+        
+    def probs(self, x, compute_log_pi=False):
+        logits = self.forward(x)
+        probs  = F.softmax(logits, dim=1)
+        if not compute_log_pi: return probs, None
+        distribution = Categorical(logits=logits)
+        entropy = distribution.entropy()
+        return probs, entropy
+        
         
     def sample(self, x, compute_log_pi=False, deterministic=False):
         '''
@@ -57,9 +63,9 @@ class Actor(nn.Module):
         logits = self.forward(x)
         distribution = Categorical(logits=logits)
         
-        if deterministic: return distribution.mode(), None
+        if deterministic: return torch.argmax(logits, dim=1), None
         
-        sampled_action  = distribution.rsample()
+        sampled_action  = distribution.sample()
         
         if not compute_log_pi: return sampled_action, None
         
@@ -82,13 +88,13 @@ class Critic(nn.Module):
         super().__init__()
         
         self._online_q = DoubleQNet(obs_shape, action_shape, n_layer, n_unit)
-        self._target_q = DoubleQNet(obs_shape, action_shape, n_layer, n_unit, requires_grad=False)
+        self._target_q = DoubleQNet(obs_shape, action_shape, n_layer, n_unit)
         
         self._target_q.load_state_dict(self._online_q.state_dict())
         
-    def target_q(self, x, a): return self._target_q(x, a)
+    def target_q(self, x): return self._target_q(x)
     
-    def online_q(self, x, a): return self._online_q(x, a)
+    def online_q(self, x): return self._online_q(x)
     
     def polyak_update(self, tau):
         '''Exponential evaraging of the online q network'''
