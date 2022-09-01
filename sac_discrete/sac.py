@@ -7,7 +7,7 @@ import numpy as np
 class SACDiscrete:
     def __init__(self, 
         obs_shape: np.ndarray,
-        action_shape: np.ndarray,
+        action_dim: int,
         device='cpu',
         hidden_dim=256,
         discount=0.99,
@@ -25,28 +25,28 @@ class SACDiscrete:
         self.gradient_steps = gradient_steps
         self.device = device
         
-        self.actor  = Actor(obs_shape, action_shape, 
+        self.actor  = Actor(obs_shape, action_dim, 
                     num_layers, hidden_dim, ).to(device)
                     
-        self.critic = Critic(obs_shape, action_shape, num_layers, hidden_dim).to(device)
+        self.critic = Critic(obs_shape, action_dim, num_layers, hidden_dim).to(device)
         
         # automatically set target entropy if needed
         # This roughly equivalent to epsilon-greedy policy
         # with 20% exploration
-        self.target_entropy = np.log(action_shape) / 5
+        self.target_entropy = np.log(action_dim) / 5
         
         self.actor_optimizer = torch.optim.Adam(
-            self.actor.parameters(), lr=actor_lr, eps=1e-5
+            self.actor.parameters(), lr=actor_lr
         )
         
         self.critic_optimizer = torch.optim.Adam(
-            self.critic._online_q.parameters(), lr=critic_lr, eps=1e-5
+            self.critic._online_q.parameters(), lr=critic_lr,
         )
         
         self.log_ent_coef = torch.log(init_temperature*torch.ones(1, device=device)).requires_grad_(True)
         
         self.ent_coef_optimizer = torch.optim.Adam([self.log_ent_coef], 
-            lr=alpha_lr, eps=1e-5
+            lr=alpha_lr,
         )
         
     def _update_critic(self, batch):
@@ -154,3 +154,4 @@ class SACDiscrete:
         self.critic.load_state_dict(
             torch.load('%s/critic_%s.pt' % (model_dir, step))
         )
+        
