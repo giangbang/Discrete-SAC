@@ -36,17 +36,17 @@ class SACDiscrete:
         self.target_entropy = np.log(action_shape) / 5
         
         self.actor_optimizer = torch.optim.Adam(
-            self.actor.parameters(), lr=actor_lr, 
+            self.actor.parameters(), lr=actor_lr, eps=1e-5
         )
         
         self.critic_optimizer = torch.optim.Adam(
-            self.critic._online_q.parameters(), lr=critic_lr,
+            self.critic._online_q.parameters(), lr=critic_lr, eps=1e-5
         )
         
         self.log_ent_coef = torch.log(init_temperature*torch.ones(1, device=device)).requires_grad_(True)
         
         self.ent_coef_optimizer = torch.optim.Adam([self.log_ent_coef], 
-            lr=alpha_lr,
+            lr=alpha_lr, eps=1e-5
         )
         
     def _update_critic(self, batch):
