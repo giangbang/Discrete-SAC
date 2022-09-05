@@ -31,7 +31,9 @@ if __name__ == '__main__':
     action_shape      = env.action_space.n
     observation_shape = env.observation_space.shape
     
-    sac_agent = SAC(observation_shape[0], action_shape, **vars(args))
+    optimizer_args = None if args.eps < 0 else {'eps': args.eps}
+    
+    sac_agent = SAC(observation_shape[0], action_shape, optimizer_args=optimizer_args**vars(args))
     buffer    = ReplayBuffer(observation_shape, [action_shape], 
                 args.buffer_size, args.batch_size)
     

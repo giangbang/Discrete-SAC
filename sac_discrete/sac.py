@@ -18,6 +18,7 @@ class SACDiscrete:
         gradient_steps=1,
         num_layers=3,
         init_temperature=1,
+        optimizer_args:dict=None,
         *args, **kwargs
     ):
         self.discount = discount
@@ -32,21 +33,25 @@ class SACDiscrete:
         
         # automatically set target entropy if needed
         # This roughly equivalent to epsilon-greedy policy
-        # with 10% exploration
-        self.target_entropy = np.log(action_dim) / 10
+        # with 20% exploration
+        self.target_entropy = np.log(action_dim) / 5
+        
+        if optimizer_args is None:
+            optimizer_args = {}
+        assert isinstance(optimizer_args, dict)
         
         self.actor_optimizer = torch.optim.Adam(
-            self.actor.parameters(), lr=actor_lr
+            self.actor.parameters(), lr=actor_lr, **optimizer_args
         )
         
         self.critic_optimizer = torch.optim.Adam(
-            self.critic._online_q.parameters(), lr=critic_lr,
+            self.critic._online_q.parameters(), lr=critic_lr, **optimizer_args
         )
         
         self.log_ent_coef = torch.log(init_temperature*torch.ones(1, device=device)).requires_grad_(True)
         
         self.ent_coef_optimizer = torch.optim.Adam([self.log_ent_coef], 
-            lr=alpha_lr,
+            lr=alpha_lr, **optimizer_args
         )
         
     def _update_critic(self, batch):
