@@ -89,8 +89,9 @@ class SACDiscrete:
     def _update_actor(self, batch):
         pi, ent = self.actor.probs(batch.states, compute_log_pi=True)
         
-        q_vals = self.critic.online_q(batch.states)
-        q_val  = torch.minimum(*q_vals)
+        with torch.no_grad():
+            q_vals = self.critic.online_q(batch.states)
+            q_val  = torch.minimum(*q_vals)
         
         with torch.no_grad():
             ent_coef = torch.exp(self.log_ent_coef)

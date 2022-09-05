@@ -63,7 +63,7 @@ class Actor(nn.Module):
         logits = self.forward(x)
         distribution = Categorical(logits=logits)
         
-        if deterministic: return torch.argmax(logits, dim=1), None
+        if deterministic: return torch.argmax(distribution.probs, dim=1), None
         
         sampled_action  = distribution.sample()
         
