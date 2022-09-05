@@ -32,8 +32,8 @@ class SACDiscrete:
         
         # automatically set target entropy if needed
         # This roughly equivalent to epsilon-greedy policy
-        # with 20% exploration
-        self.target_entropy = np.log(action_dim) / 5
+        # with 10% exploration
+        self.target_entropy = np.log(action_dim) / 10
         
         self.actor_optimizer = torch.optim.Adam(
             self.actor.parameters(), lr=actor_lr
@@ -52,7 +52,7 @@ class SACDiscrete:
     def _update_critic(self, batch):
         # Compute target Q 
         with torch.no_grad():
-            next_pi, next_log_pi  = self.actor.probs(batch.next_states, compute_log_pi=True)
+            next_pi, next_entropy  = self.actor.probs(batch.next_states, compute_log_pi=True)
             
             next_q_vals = self.critic.target_q(batch.next_states)
             next_q_val  = torch.minimum(*next_q_vals)
@@ -62,7 +62,7 @@ class SACDiscrete:
             )
             
             ent_coef    = torch.exp(self.log_ent_coef)
-            next_q_val  = next_q_val - ent_coef * next_log_pi.reshape(-1, 1)
+            next_q_val  = next_q_val + ent_coef * next_entropy.reshape(-1, 1)
             
             target_q_val= batch.rewards + (1-batch.dones)*self.discount*next_q_val
             
