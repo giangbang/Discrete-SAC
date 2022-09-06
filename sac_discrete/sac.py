@@ -19,6 +19,7 @@ class SACDiscrete:
         num_layers=3,
         init_temperature=1,
         optimizer_args:dict=None,
+        target_entropy_ratio: float=0.5,
         *args, **kwargs
     ):
         self.discount = discount
@@ -31,10 +32,11 @@ class SACDiscrete:
                     
         self.critic = Critic(obs_shape, action_dim, num_layers, hidden_dim).to(device)
         
+        target_entropy_ratio = np.clip(target_entropy_ratio, min=0, max=1)
         # automatically set target entropy if needed
         # This roughly equivalent to epsilon-greedy policy
-        # with 20% exploration
-        self.target_entropy = np.log(action_dim) / 5
+        # with `target_entropy_ratio`% exploration
+        self.target_entropy = np.log(action_dim) * target_entropy_ratio
         
         if optimizer_args is None:
             optimizer_args = {}
