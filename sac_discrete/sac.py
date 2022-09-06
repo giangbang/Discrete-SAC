@@ -32,7 +32,7 @@ class SACDiscrete:
                     
         self.critic = Critic(obs_shape, action_dim, num_layers, hidden_dim).to(device)
         
-        target_entropy_ratio = np.clip(target_entropy_ratio, min=0, max=1)
+        target_entropy_ratio = np.clip(target_entropy_ratio, a_min=0, a_max=1)
         # automatically set target entropy if needed
         # This roughly equivalent to epsilon-greedy policy
         # with `target_entropy_ratio`% exploration
