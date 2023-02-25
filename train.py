@@ -16,7 +16,7 @@ def evaluate(env, agent, n_rollout = 10):
         while not done:
             action = agent.select_action(state, True)
 
-            next_state, reward, done, info = env.step(action)
+            next_state, reward, terminated, truncated, info = env.step(action)
             tot_rw += reward
             state = next_state
             done = terminated or truncated
@@ -76,7 +76,6 @@ def main():
                     sac_agent.log_ent_coef.exp().item()
                     ))
             logger.add_scalar("eval/returns", eval_return, env_step, smooth=False)
-            logger.add_scalar("train/alpha", sac_agent.ent_coef, env_step)
 
     logger.close()
 
