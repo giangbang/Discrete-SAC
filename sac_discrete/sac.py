@@ -20,6 +20,8 @@ class SACDiscrete:
         init_temperature=1,
         optimizer_args:dict=None,
         target_entropy_ratio: float=0.5,
+        autotune: bool=True,
+        alpha: float = 0.3,
         *args, **kwargs
     ):
         self.discount = discount
@@ -49,28 +51,34 @@ class SACDiscrete:
         self.critic_optimizer = torch.optim.Adam(
             self.critic._online_q.parameters(), lr=critic_lr, **optimizer_args
         )
-        
-        self.log_ent_coef = torch.log(init_temperature*torch.ones(1, device=device)).requires_grad_(True)
-        
-        self.ent_coef_optimizer = torch.optim.Adam([self.log_ent_coef], 
-            lr=alpha_lr, **optimizer_args
-        )
-        
+        self.autotune = autotune
+        if autotune:
+            self.log_ent_coef = torch.log(init_temperature*torch.ones(1, device=device)).requires_grad_(True)
+            self.ent_coef = self.log_ent_coef.exp().item()
+            self.ent_coef_optimizer = torch.optim.Adam([self.log_ent_coef], 
+                lr=alpha_lr, **optimizer_args
+            )
+        else:
+            self.log_ent_coef = np.log(alpha)
+            self.ent_coef = alpha
+
     def _update_critic(self, batch):
-        # Compute target Q 
+        # Compute target Q
         with torch.no_grad():
             next_pi, next_entropy  = self.actor.probs(batch.next_states, compute_log_pi=True)
             
             next_q_vals = self.critic.target_q(batch.next_states)
             next_q_val  = torch.minimum(*next_q_vals)
-            
+
+            assert next_q_val.shape == next_pi.shape
             next_q_val = (next_q_val * next_pi).sum(
                 dim=1, keepdims=True
             )
-            
-            ent_coef    = torch.exp(self.log_ent_coef)
-            next_q_val  = next_q_val + ent_coef * next_entropy.reshape(-1, 1)
-            
+
+            ent_coef = self.ent_coef
+            next_q_val  = next_q_val + ent_coef * next_entropy.reshape(next_q_val.shape)
+
+            assert batch.rewards.shape == next_q_val.shape
             target_q_val= batch.rewards + (1-batch.dones)*self.discount*next_q_val
             
         current_q_vals  = self.critic.online_q(batch.states)
@@ -78,8 +86,8 @@ class SACDiscrete:
             current_q.gather(1, batch.actions)
             for current_q in current_q_vals
         ]
-        critic_loss     = .5*sum(F.mse_loss(current_q, target_q_val) for current_q in current_q_vals)
-        
+        critic_loss = .5*sum(F.mse_loss(current_q, target_q_val) for current_q in current_q_vals)
+
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
         self.critic_optimizer.step()
@@ -95,8 +103,8 @@ class SACDiscrete:
             q_vals = self.critic.online_q(batch.states)
             q_val  = torch.minimum(*q_vals)
         
-        with torch.no_grad():
-            ent_coef = torch.exp(self.log_ent_coef)
+        assert q_val.shape == pi.shape
+        ent_coef = self.ent_coef
         
         actor_loss = (pi * q_val).sum(
             dim=1, keepdims=True
@@ -111,7 +119,7 @@ class SACDiscrete:
         
     def _update_alpha(self, batch):
         with torch.no_grad():
-            pi, entropy = self.actor.probs(batch.states, compute_log_pi=True)
+            entropy = self.actor.entropy(batch.states)
         alpha_loss = -(
             self.log_ent_coef * (-entropy + self.target_entropy).detach()
         ).mean()
@@ -119,7 +127,9 @@ class SACDiscrete:
         self.ent_coef_optimizer.zero_grad()
         alpha_loss.backward()
         self.ent_coef_optimizer.step()
-        
+        with torch.no_grad():
+            self.ent_coef = torch.exp(self.log_ent_coef).item()
+
         return alpha_loss.item()
         
     def update(self, buffer):
@@ -130,14 +140,15 @@ class SACDiscrete:
             
             critic_loss = self._update_critic(batch)
             actor_loss = self._update_actor(batch)
-            alpha_loss = self._update_alpha(batch)
-            
+
             critic_losses.append(critic_loss)
             actor_losses.append(actor_loss)
-            alpha_losses.append(alpha_loss)
+            if self.autotune:
+                alpha_loss = self._update_alpha(batch)
+                alpha_losses.append(alpha_loss)
         
         return np.mean(critic_losses), np.mean(actor_losses), np.mean(alpha_losses)
-    
+
     def select_action(self, state, deterministic=False):
         with torch.no_grad():
             state = torch.FloatTensor(state).to(self.device)

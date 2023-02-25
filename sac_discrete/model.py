@@ -32,7 +32,12 @@ class Actor(nn.Module):
     '''
     Actor class for state 1d inputs
     '''
-    def __init__(self, inputs_dim, output_dims, n_layer, n_unit):
+    def __init__(self, 
+            inputs_dim: int, 
+            output_dims: int, 
+            n_layer: int, 
+            n_unit: int
+    ):
         super().__init__()
         self.inputs_dim     = inputs_dim
         self.output_dims    = output_dims
@@ -41,7 +46,7 @@ class Actor(nn.Module):
         
     def forward(self, x):
         return self._actor(x)
-        
+
     def probs(self, x, compute_log_pi=False):
         logits = self.forward(x)
         probs  = F.softmax(logits, dim=1)
@@ -50,7 +55,11 @@ class Actor(nn.Module):
         entropy = distribution.entropy()
         return probs, entropy
         
-        
+    def entropy(self, x):
+        logits = self.forward(x)
+        distribution = Categorical(logits=logits)
+        return distribution.entropy()
+
     def sample(self, x, compute_log_pi=False, deterministic=False):
         '''
         Sample action from policy, return sampled actions and log prob of that action
@@ -81,8 +90,7 @@ class DoubleQNet(nn.Module):
         
     def forward(self, x):
         return self.q1(x), self.q2(x)
-    
-        
+
 class Critic(nn.Module):
     def __init__(self, obs_shape, action_shape, n_layer, n_unit):
         super().__init__()

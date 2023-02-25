@@ -11,7 +11,7 @@ from logger import Logger
 def evaluate(env, agent, n_rollout = 10):
     tot_rw = 0
     for _ in range(n_rollout):
-        state = env.reset()
+        state, _ = env.reset()
         done = False
         while not done:
             action = agent.select_action(state, True)
@@ -19,6 +19,7 @@ def evaluate(env, agent, n_rollout = 10):
             next_state, reward, done, info = env.step(action)
             tot_rw += reward
             state = next_state
+            done = terminated or truncated
     return tot_rw / n_rollout
 
 
@@ -61,6 +62,7 @@ def main():
             loss.append(sac_agent.update(buffer))
 
         state = next_state
+        done = terminated or truncated
         if done:
             state, _ = env.reset()
             logger.add_scalar("train/returns", train_returns, env_step)
@@ -73,7 +75,9 @@ def main():
                     *np.mean(list(zip(*loss[-10:])), axis=-1),
                     sac_agent.log_ent_coef.exp().item()
                     ))
-            logger.add_scalar("eval/returns", eval_return, env_step)
+            logger.add_scalar("eval/returns", eval_return, env_step, smooth=False)
+
+    logger.close()
 
     import matplotlib.pyplot as plt
     x, y = np.linspace(0, args.total_env_step, len(his)), his
@@ -85,7 +89,7 @@ def main():
     data_dict = {'rollout/ep_rew_mean': y, 'time/total_timesteps': x} # formated as stable baselines
     df = pd.DataFrame(data_dict)
 
-    df.to_csv('sac_progress.csv', index=False)
+    df.to_csv('sac_discrete_progress.csv', index=False)
     sac_agent.save('model', args.total_env_step)
 
 if __name__ == '__main__':

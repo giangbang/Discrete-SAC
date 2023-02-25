@@ -27,19 +27,13 @@ class ReplayBuffer(object):
         self.last_save = 0
         self.full = False
 
-    def add(self, obs, action, reward, next_obs, done, info=None):
+    def add(self, obs, action, reward, next_obs, terminated, truncated, info=None):
         '''Add a new transition to replay buffer'''
         np.copyto(self.obses[self.idx], obs)
         np.copyto(self.actions[self.idx], action)
         np.copyto(self.rewards[self.idx], reward)
         np.copyto(self.next_obses[self.idx], next_obs)
-        np.copyto(self.dones[self.idx], done)
-
-        if info is not None:
-            # [Important] Handle timeout separately for infinite horizon
-            # For more information, see https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/common/buffers.py#L213
-            timeout = info.get("TimeLimit.truncated", False)
-            self.dones[self.idx] *= 1-timeout
+        np.copyto(self.dones[self.idx], terminated)
 
         self.idx = (self.idx + 1) % self.capacity
         self.full = self.full or self.idx == 0

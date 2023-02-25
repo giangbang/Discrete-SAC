@@ -28,12 +28,15 @@ def parse_args():
     parser.add_argument('--discount', default=0.99, type=float)
     parser.add_argument('--init_temperature', default=1, type=float)
     parser.add_argument('--alpha_lr', default=3e-4, type=float)
+    parser.add_argument("--autotune", type=lambda x:bool(strtobool(x)), default=True, nargs="?", const=True,
+        help="automatic tuning of the entropy coefficient")
+
     # misc
     parser.add_argument('--seed', default=-1, type=int)
-    parser.add_argument('--model_dir', default='/model', type=str)
-    parser.add_argument('--save_model', default=False, action='store_true')
-    parser.add_argument('--save_buffer', default=False, action='store_true')
-    parser.add_argument('--save_video', default=False, action='store_true')
+    # parser.add_argument('--model_dir', default='/model', type=str)
+    # parser.add_argument('--save_model', default=False, action='store_true')
+    # parser.add_argument('--save_buffer', default=False, action='store_true')
+    # parser.add_argument('--save_video', default=False, action='store_true')
 
     args, unknown = parser.parse_known_args()
     return args
