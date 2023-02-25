@@ -1,9 +1,12 @@
 import argparse
+from distutils.util import strtobool
+import numpy as np
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Training SAC discrete')
     # environment
     parser.add_argument('--env_name', default='LunarLander-v2')
+    parser.add_argument('--atari', type=lambda x:bool(strtobool(x)), default=False, nargs="?", const=True,)
     # replay buffer
     parser.add_argument('--buffer_size', default=1000000, type=int)
     # train
@@ -22,7 +25,7 @@ def parse_args():
     # actor
     parser.add_argument('--actor_lr', default=3e-4, type=float)
     parser.add_argument('--target_entropy_ratio', default=.5, type=float)
-    
+
     parser.add_argument('--num_layers', default=3, type=int)
     # sac
     parser.add_argument('--discount', default=0.99, type=float)
@@ -46,7 +49,7 @@ def seed_everything(seed: int):
     import random, os
     import numpy as np
     import torch
-    
+
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
     np.random.seed(seed)
@@ -54,18 +57,31 @@ def seed_everything(seed: int):
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = True
-    
+
 def pprint(dict_data):
     '''Pretty print Hyper-parameters'''
     hyper_param_space, value_space = 30, 40
     format_str = "| {:<"+ f"{hyper_param_space}" + "} | {:<"+f"{value_space}"+"}|"
     hbar = '-'*(hyper_param_space + value_space+6)
-    
+
     print(hbar)
     print(format_str.format('Hyperparams', 'Values'))
     print(hbar)
-    
+
     for k, v in dict_data.items():
         print(format_str.format(str(k), str(v)))
-        
+
     print(hbar)
+
+def is_image_space(observation_shape: np.ndarray) -> bool:
+    """
+    Modified from stable baselines3:
+    https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/common/preprocessing.py#L27
+    Check if a observation space has the shape, limits and dtype
+    of a valid image.
+    We only check the shape of the environments, since in `atari`, input images can be scaled to
+    grayscale
+    """
+    if len(observation_shape) >= 3 and observation_shape[0] < 10 and np.prod(observation_shape) < 500:
+        return True
+    return False

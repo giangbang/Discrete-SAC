@@ -7,6 +7,7 @@ import numpy as np
 import gymnasium as gym
 from utils import parse_args, pprint, seed_everything
 from logger import Logger
+from make_env import make_atari
 
 def evaluate(env, agent, n_rollout = 10):
     tot_rw = 0
@@ -30,12 +31,15 @@ def main():
 
     if args.seed > 0: seed_everything(args.seed)
 
-    env = gym.make(args.env_name)
+    if args.atari:
+        env = make_atari(args.env_name, seed=args.seed if args.seed > 0 else None)
+    else:
+        env = gym.make(args.env_name)
 
     action_shape      = env.action_space.n
     observation_shape = env.observation_space.shape
 
-    sac_agent = SAC(observation_shape[0], action_shape, **vars(args))
+    sac_agent = SAC(observation_shape, action_shape, **vars(args))
     buffer    = ReplayBuffer(observation_shape, [action_shape],
                 args.buffer_size, args.batch_size)
 
