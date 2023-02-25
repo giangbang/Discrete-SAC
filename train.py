@@ -75,7 +75,7 @@ def main():
                     *np.mean(list(zip(*loss[-10:])), axis=-1),
                     sac_agent.log_ent_coef.exp().item()
                     ))
-            logger.add_scalar("eval/returns", eval_return, env_step, smooth=False)
+            logger.add_scalar("eval/returns", eval_return, env_step, smoothing=False)
 
     logger.close()
 
