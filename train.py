@@ -55,7 +55,7 @@ def main():
             action = sac_agent.select_action(state, False)
 
         next_state, reward, terminated, truncated, info = env.step(action)
-        buffer.add(state, action, reward, next_state, done, info)
+        buffer.add(state, action, reward, next_state, terminated, info)
         train_returns += reward
 
         if (env_step + 1) % args.train_freq == 0:
@@ -76,6 +76,7 @@ def main():
                     sac_agent.log_ent_coef.exp().item()
                     ))
             logger.add_scalar("eval/returns", eval_return, env_step, smooth=False)
+            logger.add_scalar("train/alpha", sac_agent.ent_coef, env_step)
 
     logger.close()
 
