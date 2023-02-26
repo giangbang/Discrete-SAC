@@ -80,6 +80,8 @@ def main():
                     sac_agent.log_ent_coef.exp().item()
                     ))
             logger.add_scalar("eval/returns", eval_return, env_step, smoothing=False)
+        if (env_step + 1) % 5000 == 0:
+            logger.log_stdout()
 
     logger.close()
 
