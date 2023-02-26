@@ -14,6 +14,7 @@ class ReplayBuffer(object):
         self.batch_size = batch_size
         if device == 'auto':
             self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+            device = self.device
         else:
             self.device = device
 
