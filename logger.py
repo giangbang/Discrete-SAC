@@ -11,7 +11,7 @@ except ImportError:
 
 
 class Logger:
-    def __init__(self, run_name=os.path.basename(__main__.__file__).rstrip(".py"), folder="runs"):
+    def __init__(self, run_name=os.path.basename(__file__).rstrip(".py"), folder="runs"):
         self.writer = SummaryWriter(f"{folder}/{run_name}")
         self.name_to_values = dict()
         self.name_to_step = dict()
