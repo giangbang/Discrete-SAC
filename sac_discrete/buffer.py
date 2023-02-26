@@ -9,7 +9,7 @@ Transition = namedtuple('Transition',
 # https://github.com/denisyarats/pytorch_sac_ae/blob/master/utils.py
 class ReplayBuffer(object):
     """Buffer to store environment transitions."""
-    def __init__(self, obs_shape, action_shape, capacity, batch_size, device='cuda'):
+    def __init__(self, obs_shape, action_shape, capacity, batch_size, device='auto'):
         self.capacity = capacity
         self.batch_size = batch_size
         if device == 'auto':
