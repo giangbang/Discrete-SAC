@@ -9,10 +9,13 @@ Transition = namedtuple('Transition',
 # https://github.com/denisyarats/pytorch_sac_ae/blob/master/utils.py
 class ReplayBuffer(object):
     """Buffer to store environment transitions."""
-    def __init__(self, obs_shape, action_shape, capacity, batch_size, device='cpu'):
+    def __init__(self, obs_shape, action_shape, capacity, batch_size, device='cuda'):
         self.capacity = capacity
         self.batch_size = batch_size
-        self.device = device
+        if device == 'auto':
+            self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        else:
+            self.device = device
 
         # the proprioceptive obs is stored as float32, pixels obs as uint8
         obs_dtype = np.float32 # if len(obs_shape) == 1 else np.uint8
