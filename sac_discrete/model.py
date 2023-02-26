@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
 from utils import is_image_space
+import numpy as np
 
 
 class MLP(nn.Module):
@@ -127,9 +128,8 @@ class DoubleQNet(nn.Module):
             self.q1 = MLP(state_dim, action_dim, n_layer, n_unit)
             self.q2 = MLP(state_dim, action_dim, n_layer, n_unit)
         else:
-            self._actor = CNN(inputs_dim[-3], output_dims)
-            self.q1 = CNN(state_dim, action_dim, n_layer, n_unit)
-            self.q2 = CNN(state_dim, action_dim, n_layer, n_unit)
+            self.q1 = CNN(state_dim[0], action_dim)
+            self.q2 = CNN(state_dim[0], action_dim)
 
     def forward(self, x):
         return self.q1(x), self.q2(x)

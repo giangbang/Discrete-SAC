@@ -75,13 +75,11 @@ def pprint(dict_data):
 
 def is_image_space(observation_shape: np.ndarray) -> bool:
     """
-    Modified from stable baselines3:
-    https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/common/preprocessing.py#L27
     Check if a observation space has the shape, limits and dtype
     of a valid image.
     We only check the shape of the environments, since in `atari`, input images can be scaled to
     grayscale
     """
-    if len(observation_shape) >= 3 and observation_shape[0] < 10 and np.prod(observation_shape) < 500:
+    if len(observation_shape) >= 3 and observation_shape[0] < 10 and np.prod(observation_shape) > 500:
         return True
     return False

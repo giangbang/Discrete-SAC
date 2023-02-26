@@ -1,4 +1,5 @@
 gymnasium
+gymnasium[accept-rom-license]
 numpy
 matplotlib
 torch
