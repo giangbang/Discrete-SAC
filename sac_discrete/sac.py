@@ -29,6 +29,7 @@ class SACDiscrete:
         self.gradient_steps = gradient_steps
         if device == 'auto':
             self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+            device = self.device
         else:
             self.device = device
 
