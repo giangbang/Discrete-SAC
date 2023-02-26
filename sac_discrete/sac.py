@@ -155,9 +155,11 @@ class SACDiscrete:
 
     def select_action(self, state, deterministic=False):
         with torch.no_grad():
-            state = torch.FloatTensor(state).to(self.device)
-            if len(state.shape) == 1: state = state.unsqueeze(0)
-            return self.actor.sample(state, False, deterministic)[0].cpu().numpy().item()
+            state = np.array(state)
+            state = torch.from_numpy(state).to(self.device).unsqueeze(0)
+            # if len(state.shape) == 1: state = state.unsqueeze(0)
+            return self.actor.sample(state, False, deterministic)[0].cpu().squeeze(0).numpy().item()
+
 
     def save(self, model_dir, step):
         import os

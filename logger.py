@@ -39,7 +39,7 @@ class Logger:
         results = {}
         for name, vals in self.name_to_values.items():
             results[name] = np.mean(vals)
-        results["step"] = np.max(self.name_to_step.values())
+        results["step"] = np.max(list(self.name_to_step.values()))
         pprint(results)
 
     def __getitem__(self, key):
