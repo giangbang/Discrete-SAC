@@ -3,7 +3,10 @@ import gymnasium as gym
 def make_atari(env_id, seed=None):
     env = gym.make(env_id)
     from gymnasium.wrappers.atari_preprocessing import AtariPreprocessing
-    env = AtariPreprocessing(env, terminal_on_life_loss=False, scale_obs=True)
+    try:
+        env = AtariPreprocessing(env, terminal_on_life_loss=False, scale_obs=True)
+    except ValueError:
+        env = AtariPreprocessing(env, terminal_on_life_loss=False, scale_obs=True, frame_skip=1)
     env = gym.wrappers.FrameStack(env, 4)
     if seed is not None:
         env.seed(seed)
