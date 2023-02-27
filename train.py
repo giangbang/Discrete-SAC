@@ -84,6 +84,9 @@ def main():
             logger.add_scalar("eval/returns", eval_return, env_step, smoothing=False)
         if (env_step + 1) % 5000 == 0:
             logger.log_stdout()
+        if (env_step + 1) % 100 == 0:
+            logger.add_scalar("train/entropy", sac_agent.entropy, env_step)
+            logger.add_scalar("train/fps", logger.fps(), env_step)
 
     logger.close()
 

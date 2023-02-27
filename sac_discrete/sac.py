@@ -123,10 +123,11 @@ class SACDiscrete:
 
     def _update_alpha(self, batch):
         with torch.no_grad():
-            entropy = self.actor.entropy(batch.states)
+            entropy = self.actor.entropy(batch.states).mean()
         alpha_loss = -(
             self.log_ent_coef * (-entropy + self.target_entropy).detach()
-        ).mean()
+        )
+        self.entropy = entropy.item()
 
         self.ent_coef_optimizer.zero_grad()
         alpha_loss.backward()

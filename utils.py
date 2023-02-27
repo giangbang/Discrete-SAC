@@ -12,7 +12,7 @@ def parse_args():
     # train
     parser.add_argument('--start_step', default=1000, type=int)
     parser.add_argument('--total_env_step', default=1000000, type=int)
-    parser.add_argument('--batch_size', default=256, type=int)
+    parser.add_argument('--batch_size', default=64, type=int)
     parser.add_argument('--hidden_dim', default=256, type=int)
     parser.add_argument('--gradient_steps', default=1, type=int)
     parser.add_argument('--train_freq', default=1, type=int)

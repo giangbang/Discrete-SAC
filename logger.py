@@ -3,6 +3,7 @@ import os
 import torch
 import datetime
 import numpy as np
+import time
 from collections import deque
 try:
     from torch.utils.tensorboard import SummaryWriter
@@ -11,17 +12,27 @@ except ImportError:
 
 
 class Logger:
-    def __init__(self, run_name=os.path.basename(__file__).rstrip(".py"), folder="runs"):
-        self.writer = SummaryWriter(f"{folder}/{run_name}")
+    """
+    Logging class, support printing monitoring information to `std_out` and tf.event files
+    """
+    def __init__(self, run_name=datetime.now().strftime('%Y-%m-%d_%H%M%S'), folder="runs"):
+        self.writer = SummaryWriter(f"SAC-discrete.{folder}/{run_name}")
         self.name_to_values = dict()
-        self.name_to_step = dict()
+        self.current_env_step = 0
+        self.start_time = time.time()
 
     def add_hyperparams(self, hyperparams: dict):
+        """
+        Save hyperparameters into tensorboard
+        """
         self.writer.add_text("hyperparameters",
             "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in hyperparams.items()])),
         )
 
     def add_run_command(self):
+        """
+        Automatically save terminal command to tensorboard
+        """
         cmd = " ".join(sys.argv)
         self.writer.add_text("terminal", cmd)
 
@@ -30,16 +41,19 @@ class Logger:
         if key not in self.name_to_values:
             self.name_to_values[key] = deque(maxlen=10 if smoothing else 1)
         self.name_to_values[key].extend([val])
-        self.name_to_step[key] = step
+        self.current_env_step = max(current_env_step, step)
 
     def close(self):
         self.writer.close()
 
     def log_stdout(self):
+        """
+        Print results to terminal
+        """
         results = {}
         for name, vals in self.name_to_values.items():
             results[name] = np.mean(vals)
-        results["step"] = np.max(list(self.name_to_step.values()))
+        results["step"] = current_env_step
         pprint(results)
 
     def __getitem__(self, key):
@@ -53,6 +67,12 @@ class Logger:
     def _default_values(self, deque_len=10):
         return deque(maxlen=deque_len)
 
+    def fps(self):
+        """
+        Measuring the fps
+        """
+        time_pass = time.time() - self.start_time # in second
+        return int(self.current_env_step / time_pass)
 
 def pprint(dict_data):
     '''Pretty print Hyper-parameters'''
