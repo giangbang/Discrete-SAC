@@ -33,8 +33,10 @@ def main():
 
     if args.atari:
         env = make_atari(args.env_name, seed=args.seed if args.seed > 0 else None)
+        test_env = make_atari(args.env_name, seed=args.seed+1 if args.seed > 0 else None)
     else:
         env = gym.make(args.env_name)
+        test_env = gym.make(args.env_name)
 
     action_shape      = env.action_space.n
     observation_shape = env.observation_space.shape
@@ -72,7 +74,7 @@ def main():
             logger.add_scalar("train/returns", train_returns, env_step)
             train_returns = 0
         if (env_step + 1) % args.eval_interval == 0:
-            eval_return = evaluate(gym.make(args.env_name), sac_agent, args.num_eval_episodes)
+            eval_return = evaluate(test_env, sac_agent, args.num_eval_episodes)
             his.append(eval_return)
             print('mean reward after {} env step: {:.2f}'.format(env_step+1, eval_return))
             print('critic loss: {:.2f} | actor loss: {:.2f} | alpha loss: {:.2f} | alpha: {:.2f}'.format(
