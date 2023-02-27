@@ -1,7 +1,7 @@
 import sys
 import os
 import torch
-import datetime
+from datetime import datetime
 import numpy as np
 import time
 from collections import deque
@@ -41,7 +41,7 @@ class Logger:
         if key not in self.name_to_values:
             self.name_to_values[key] = deque(maxlen=10 if smoothing else 1)
         self.name_to_values[key].extend([val])
-        self.current_env_step = max(current_env_step, step)
+        self.current_env_step = max(self.current_env_step, step)
 
     def close(self):
         self.writer.close()
@@ -53,7 +53,7 @@ class Logger:
         results = {}
         for name, vals in self.name_to_values.items():
             results[name] = np.mean(vals)
-        results["step"] = current_env_step
+        results["step"] = self.current_env_step
         pprint(results)
 
     def __getitem__(self, key):

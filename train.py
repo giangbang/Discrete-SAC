@@ -87,6 +87,7 @@ def main():
         if (env_step + 1) % 100 == 0:
             logger.add_scalar("train/entropy", sac_agent.entropy, env_step)
             logger.add_scalar("train/fps", logger.fps(), env_step)
+            logger.add_scalar("train/q_estimate_mean", sac_agent.current_q_estimate, env_step)
 
     logger.close()
 

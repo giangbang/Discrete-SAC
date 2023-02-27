@@ -97,6 +97,8 @@ class SACDiscrete:
         self.critic_optimizer.step()
 
         self.critic.polyak_update(self.critic_tau)
+        # saving for logging
+        self.current_q_estimate = np.mean([q.mean().item() for q in current_q_vals])
 
         return critic_loss.item()
 

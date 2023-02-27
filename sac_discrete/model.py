@@ -75,7 +75,8 @@ class Actor(nn.Module):
 
         self.is_image_space = is_image_space(self.inputs_dim)
         if not self.is_image_space:
-            self._actor = MLP(inputs_dim, output_dims, n_layer, n_unit)
+            self.inputs_dim = np.prod(inputs_dim)
+            self._actor = MLP(self.inputs_dim, output_dims, n_layer, n_unit)
         else:
             self._actor = CNN(inputs_dim[-3], output_dims)
 
@@ -122,14 +123,15 @@ class DoubleQNet(nn.Module):
         super().__init__()
 
         self.state_dim = state_dim
-        self.action_dim = action_dim
+        self.action_dim = np.prod(action_dim) # always int, since the action space is discrete
         self.is_image_space = is_image_space(self.state_dim)
         if not self.is_image_space:
-            self.q1 = MLP(state_dim, action_dim, n_layer, n_unit)
-            self.q2 = MLP(state_dim, action_dim, n_layer, n_unit)
+            self.state_dim = np.prod(state_dim)
+            self.q1 = MLP(self.state_dim, action_dim, n_layer, n_unit)
+            self.q2 = MLP(self.state_dim, action_dim, n_layer, n_unit)
         else:
-            self.q1 = CNN(state_dim[0], action_dim)
-            self.q2 = CNN(state_dim[0], action_dim)
+            self.q1 = CNN(self.state_dim[0], action_dim)
+            self.q2 = CNN(self.state_dim[0], action_dim)
 
     def forward(self, x):
         return self.q1(x), self.q2(x)
