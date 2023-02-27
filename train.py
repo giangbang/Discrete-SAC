@@ -26,7 +26,7 @@ def evaluate(env, agent, n_rollout = 10):
 
 def main():
     args = parse_args()
-    logger = Logger()
+    logger = Logger(tensorboard=args.tensorboard)
     logger.add_run_command()
 
     if args.seed > 0: seed_everything(args.seed)

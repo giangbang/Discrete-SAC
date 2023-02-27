@@ -7,6 +7,7 @@ def parse_args():
     # environment
     parser.add_argument('--env_name', default='LunarLander-v2')
     parser.add_argument('--atari', type=lambda x:bool(strtobool(x)), default=False, nargs="?", const=True,)
+    parser.add_argument('--tensorboard', type=lambda x:bool(strtobool(x)), default=False, nargs="?", const=True,)
     # replay buffer
     parser.add_argument('--buffer_size', default=1000000, type=int)
     # train
